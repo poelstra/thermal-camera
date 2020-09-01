@@ -1,14 +1,31 @@
+#include "sdl.h"
+
 #include <unistd.h>
 #define SDL_MAIN_HANDLED /*To fix SDL's "undefined reference to WinMain" issue*/
 #include "display/monitor.h"
 #include "indev/keyboard.h"
-#include "indev/mouse.h"
-#include "indev/mousewheel.h"
 #include <SDL2/SDL.h>
 
 #include "hal_time.h"
 
-void sdl_init(void)
+static bool joystick_keyboard_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+{
+    bool result = keyboard_read(indev_drv, data);
+
+    switch (data->key)
+    {
+    case LV_KEY_UP:
+        data->key = LV_KEY_PREV;
+        break;
+    case LV_KEY_DOWN:
+        data->key = LV_KEY_NEXT;
+        break;
+    }
+
+    return result;
+}
+
+void sdl_init(lv_group_t *keyboard_group)
 {
     /* Add a display
      * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
@@ -22,27 +39,14 @@ void sdl_init(void)
     lv_disp_drv_init(&disp_drv);       /*Basic initialization*/
     disp_drv.flush_cb = monitor_flush; /*Used when `LV_VDB_SIZE != 0` in lv_conf.h (buffered drawing)*/
     disp_drv.buffer = &disp_buf;
-    // disp_drv.disp_fill = monitor_fill;      /*Used when `LV_VDB_SIZE == 0` in lv_conf.h (unbuffered drawing)*/
-    // disp_drv.disp_map = monitor_map;        /*Used when `LV_VDB_SIZE == 0` in lv_conf.h (unbuffered drawing)*/
     lv_disp_drv_register(&disp_drv);
 
-    /* Add the mouse as input device
-     * Use the 'mouse' driver which reads the PC's mouse*/
-    mouse_init();
+    // Initialize keys
+    keyboard_init();
     lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv); /*Basic initialization*/
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb =
-        mouse_read; /*This function will be called periodically (by the library) to get the mouse position and state*/
-    lv_indev_drv_register(&indev_drv);
-
-    // /* Tick init.
-    //  * You have to call 'lv_tick_inc()' in periodically to inform LittelvGL about how much time were elapsed
-    //  * Create an SDL thread to do this*/
-    // SDL_CreateThread(tick_thread, "tick", NULL);
-}
-
-void sdl_tick(void)
-{
-    lv_task_handler();
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
+    indev_drv.read_cb = joystick_keyboard_read;
+    lv_indev_t *keypad_indev = lv_indev_drv_register(&indev_drv);
+    lv_indev_set_group(keypad_indev, keyboard_group);
 }

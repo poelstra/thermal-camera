@@ -3,6 +3,7 @@
 #include "hal_led.h"
 #include "hal_time.h"
 
+#include "keyboard.h"
 #include "lcd.h"
 #include <Arduino.h>
 #include <lvgl.h>
@@ -36,17 +37,10 @@ void setup()
         }
     }
 
-    Serial.println("Thermal Camera");
-    Serial.println("Copyright (C) 2020 Martin Poelstra");
-    Serial.println();
-
-    lv_init();
-    lcd_init();
     app_init();
 }
 
 void loop()
 {
-    lv_task_handler();
     app_tick();
 }

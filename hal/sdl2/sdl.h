@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-void sdl_init(void);
+#include <lvgl.h>
+
+void sdl_init(lv_group_t *keyboard_group);
 void sdl_tick(void);
 
 #ifdef __cplusplus

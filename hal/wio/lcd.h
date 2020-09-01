@@ -1,5 +1,5 @@
-#ifndef HAL_LCD_H
-#define HAL_LCD_H
+#ifndef _HAL_LCD_H
+#define _HAL_LCD_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,4 +11,4 @@ void lcd_init(void);
 } /* extern "C" */
 #endif
 
-#endif /*HAL_LCD_H*/
+#endif /*_HAL_LCD_H*/

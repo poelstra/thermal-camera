@@ -8,13 +8,10 @@
 
 int main(void)
 {
-    lv_init();
-    sdl_init();
     app_init();
 
     while (true)
     {
-        sdl_tick();
         app_tick();
         hal_sleep(5);
     }
