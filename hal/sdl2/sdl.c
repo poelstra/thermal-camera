@@ -20,12 +20,21 @@ static bool joystick_keyboard_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *d
     case LV_KEY_DOWN:
         data->key = LV_KEY_NEXT;
         break;
+    case 'a':
+        data->key = 'A';
+        break;
+    case 'b':
+        data->key = 'B';
+        break;
+    case 'c':
+        data->key = 'C';
+        break;
     }
 
     return result;
 }
 
-void sdl_init(lv_group_t *keyboard_group)
+void sdl_init()
 {
     /* Add a display
      * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
@@ -47,6 +56,5 @@ void sdl_init(lv_group_t *keyboard_group)
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_KEYPAD;
     indev_drv.read_cb = joystick_keyboard_read;
-    lv_indev_t *keypad_indev = lv_indev_drv_register(&indev_drv);
-    lv_indev_set_group(keypad_indev, keyboard_group);
+    lv_indev_drv_register(&indev_drv);
 }

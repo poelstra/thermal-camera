@@ -3,8 +3,8 @@
 #include "keyboard.h"
 #include "lcd.h"
 
-void hal_init(lv_group_t *keyboard_group)
+void hal_init()
 {
     lcd_init();
-    keyboard_init(keyboard_group);
+    keyboard_init();
 }

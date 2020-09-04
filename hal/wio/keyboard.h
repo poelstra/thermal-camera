@@ -7,7 +7,7 @@ extern "C" {
 
 #include <lvgl.h>
 
-void keyboard_init(lv_group_t *keyboard_group);
+void keyboard_init();
 
 #ifdef __cplusplus
 } /* extern "C" */

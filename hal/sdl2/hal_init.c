@@ -2,7 +2,7 @@
 
 #include "sdl.h"
 
-void hal_init(lv_group_t *keyboard_group)
+void hal_init()
 {
-    sdl_init(keyboard_group);
+    sdl_init();
 }

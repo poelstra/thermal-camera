@@ -5,9 +5,7 @@
 extern "C" {
 #endif
 
-#include <lvgl.h>
-
-void hal_init(lv_group_t *keyboard_group);
+void hal_init(void);
 
 #ifdef __cplusplus
 } /* extern "C" */

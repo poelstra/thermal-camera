@@ -39,7 +39,7 @@ static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
     return false;
 }
 
-void keyboard_init(lv_group_t *keyboard_group)
+void keyboard_init()
 {
     for (int i = 0; i < NUM_KEYS; i++)
     {
@@ -50,6 +50,5 @@ void keyboard_init(lv_group_t *keyboard_group)
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_KEYPAD;
     indev_drv.read_cb = keyboard_read;
-    lv_indev_t *keypad_indev = lv_indev_drv_register(&indev_drv);
-    lv_indev_set_group(keypad_indev, keyboard_group);
+    lv_indev_drv_register(&indev_drv);
 }
