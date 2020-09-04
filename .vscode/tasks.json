@@ -7,8 +7,14 @@
       "label": "Run native",
       "type": "shell",
       "command": "./.pio/build/native/program",
-      "dependsOn": ["PlatformIO: Build (native)"],
-      "problemMatcher": []
+      "dependsOn": [
+        "PlatformIO: Build (native)"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }
