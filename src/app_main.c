@@ -90,10 +90,35 @@ static void main_event_cb(lv_obj_t *obj, lv_event_t event)
     }
 }
 
+void print_lv_log_cb(lv_log_level_t level, const char *file, uint32_t line, const char *func, const char *desc)
+{
+    const char *level_text = "<UNKNOWN>";
+    switch (level)
+    {
+    case LV_LOG_LEVEL_TRACE:
+        level_text = "TRACE";
+        break;
+    case LV_LOG_LEVEL_INFO:
+        level_text = "INFO";
+        break;
+    case LV_LOG_LEVEL_WARN:
+        level_text = "WARNING";
+        break;
+    case LV_LOG_LEVEL_ERROR:
+        level_text = "ERROR";
+        break;
+    case LV_LOG_LEVEL_USER:
+        level_text = "USER";
+        break;
+    }
+    hal_printf("[%s] %s:%u (%s) %s\n", level_text, file, line, func, desc);
+}
+
 void app_init()
 {
     lv_init();
     hal_init();
+    lv_log_register_print_cb(print_lv_log_cb);
 
     hal_printf("Thermal Camera\n");
     hal_printf("Copyright (C) 2020 Martin Poelstra\n\n");
