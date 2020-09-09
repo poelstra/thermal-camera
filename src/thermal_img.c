@@ -79,7 +79,7 @@ void thermal_img_init()
     for (int y = 0; y < LEGEND_HEIGHT; y++)
     {
         legend_rect_dsc.bg_color = colorMap[y * 256 / LEGEND_HEIGHT];
-        lv_canvas_draw_rect(legend, 0, LEGEND_HEIGHT - y, 16, 1, &legend_rect_dsc);
+        lv_canvas_draw_rect(legend, 0, LEGEND_HEIGHT - y - 1, 16, 1, &legend_rect_dsc);
     }
 
     // Color scale min/max labels
