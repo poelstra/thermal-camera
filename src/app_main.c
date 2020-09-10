@@ -67,25 +67,34 @@ void settings_show()
 static void main_event_cb(lv_obj_t *obj, lv_event_t event)
 {
     hal_printf("main: obj=%p, e=%d\n", obj, event);
-    if (event == LV_EVENT_RELEASED)
-    {
-        settings_show();
-        return;
-    }
     if (event == LV_EVENT_KEY)
     {
         uint32_t key = *((uint32_t *)lv_event_get_data());
+        bool wait_release = false;
         switch (key)
         {
+        case LV_KEY_ENTER:
+            settings_show();
+            wait_release = true;
+            break;
         case 'A':
             hal_printf("A\n");
+            wait_release = true;
             break;
         case 'B':
             hal_printf("B\n");
+            wait_release = true;
             break;
         case 'C':
             hal_printf("C\n");
+            wait_release = true;
             break;
+        }
+
+        if (wait_release)
+        {
+            lv_indev_t *indev = lv_indev_get_act();
+            lv_indev_wait_release(indev);
         }
     }
 }
