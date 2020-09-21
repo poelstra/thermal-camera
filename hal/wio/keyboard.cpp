@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "hal_input.h"
 
 #include <Arduino.h>
 #include <lvgl.h>
@@ -11,10 +12,10 @@ static const uint8_t key_pins[] = {
 
 // WIO numbered their three top keys in reverse order...
 static const uint32_t key_codes[NUM_KEYS] = {
-    LV_KEY_PREV, LV_KEY_NEXT, LV_KEY_LEFT, LV_KEY_RIGHT, LV_KEY_ENTER, 'C', 'B', 'A',
+    LV_KEY_UP, LV_KEY_DOWN, LV_KEY_LEFT, LV_KEY_RIGHT, LV_KEY_ENTER, 'C', 'B', 'A',
 };
 
-static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
+bool hal_keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 {
     // Theoretically, we can send multiple _PR states in one 'tick'
     // by returning true and it will keep calling us. In practice,
@@ -45,10 +46,4 @@ void keyboard_init()
     {
         pinMode(key_pins[i], INPUT_PULLUP);
     }
-
-    lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv.read_cb = keyboard_read;
-    lv_indev_drv_register(&indev_drv);
 }

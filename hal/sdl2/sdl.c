@@ -6,20 +6,15 @@
 #include "indev/keyboard.h"
 #include <SDL2/SDL.h>
 
+#include "hal_input.h"
 #include "hal_time.h"
 
-static bool joystick_keyboard_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+bool hal_keyboard_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 {
     bool result = keyboard_read(indev_drv, data);
 
     switch (data->key)
     {
-    case LV_KEY_UP:
-        data->key = LV_KEY_PREV;
-        break;
-    case LV_KEY_DOWN:
-        data->key = LV_KEY_NEXT;
-        break;
     case 'a':
         data->key = 'A';
         break;
@@ -52,9 +47,4 @@ void sdl_init()
 
     // Initialize keys
     keyboard_init();
-    lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv.read_cb = joystick_keyboard_read;
-    lv_indev_drv_register(&indev_drv);
 }
