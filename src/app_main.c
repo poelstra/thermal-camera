@@ -1,4 +1,5 @@
 #include "app_main.h"
+#include "focus.h"
 #include "thermal_img.h"
 
 #include "hal_init.h"
@@ -9,57 +10,6 @@
 #include "hal_time.h"
 
 #include <lvgl.h>
-
-typedef struct FocusGroup FocusGroup;
-struct FocusGroup
-{
-    lv_group_t *group;
-    FocusGroup *next;
-};
-
-static FocusGroup *groups = NULL;
-
-void set_focus_group(lv_group_t *group)
-{
-    lv_indev_t *indev = lv_indev_get_next(NULL);
-    while (indev)
-    {
-        lv_indev_set_group(indev, group);
-        indev = lv_indev_get_next(indev);
-    }
-}
-
-/**
- * Create new focus group and make it current.
- */
-lv_group_t *push_focus_group()
-{
-    FocusGroup *item = lv_mem_alloc(sizeof(FocusGroup));
-    item->group = lv_group_create();
-    item->next = groups;
-    groups = item;
-    set_focus_group(item->group);
-    return item->group;
-}
-
-/**
- * Restore previous focus group.
- */
-lv_group_t *pop_focus_group()
-{
-    if (groups->next == NULL)
-    {
-        hal_printf("ERROR: cannot pop focus group, empty\n");
-        return NULL;
-    }
-
-    FocusGroup *old = groups;
-    groups = groups->next;
-    lv_group_del(old->group);
-    lv_mem_free(old);
-    set_focus_group(groups->group);
-    return groups->group;
-}
 
 void settings_show()
 {
@@ -133,7 +83,7 @@ static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
         enter_pressed = false;
     }
 
-    lv_group_t *group = groups->group;
+    lv_group_t *group = focus_get_current_group();
     bool editing = lv_group_get_editing(group);
 
     switch (data->key)
@@ -215,7 +165,7 @@ void app_init()
     thermal_img_init();
 
     lv_obj_set_event_cb(lv_scr_act(), main_event_cb);
-    lv_group_t *group = push_focus_group();
+    lv_group_t *group = focus_push_group();
     lv_group_add_obj(group, lv_scr_act());
 }
 
