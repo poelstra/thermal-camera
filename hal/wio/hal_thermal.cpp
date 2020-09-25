@@ -75,7 +75,7 @@ bool thermal_init()
     return true;
 }
 
-bool thermal_tick(float *pixels, float emissivity, float *tr)
+bool thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
 {
     static bool havePage[] = {false, false};
     static float Ta = 30.0;
@@ -100,12 +100,16 @@ bool thermal_tick(float *pixels, float emissivity, float *tr)
     }
 
     // Determine reflected temperature to use: use built-in ambient
-    // temperature sensor (tr == NULL) or user-defined temperature.
+    // temperature sensor or user-defined temperature.
     float trToUse;
-    if (tr == NULL)
+    if (auto_tr || tr == NULL)
     {
         Ta = MLX90641_GetTa(MLX90641Frame, &MLX90641);
         trToUse = Ta - TA_SHIFT;
+        if (tr != NULL)
+        {
+            *tr = trToUse;
+        }
     }
     else
     {

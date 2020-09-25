@@ -21,12 +21,15 @@ bool thermal_init();
  * Check whether new thermal data is available and if so, read it.
  * @param pixels Array of pixels to fill with temperature in degrees Celsius
  * @param emissivity Emmisivity to use for calculation (0.0 .. 1.0)
- * @param tr Reflected temperature to use for calculation, or NULL to derive ambient
- *      ambient temperature using IR sensor's built-in temperature sensor.
+ * @param auto_tr When true, derive ambient temperature from IR sensor's built-in sensor,
+ *      and update `tr` with that value. When false, use user-supplied value of `tr`.
+ * @param tr Reflected temperature to use for calculation. Must be provided by user when
+ *      `auto_tr` is false, will be filled in with in-use value when non-NULL and `auto_tr`
+ *      is true and data is available.
  * @returns true when new sub-page has been read (all pixels will have been updated), false
  *      if no data was available or an error occurred.
  */
-bool thermal_tick(float pixels[THERMAL_COLS * THERMAL_ROWS], float emissivity, float *tr);
+bool thermal_tick(float pixels[THERMAL_COLS * THERMAL_ROWS], float emissivity, bool auto_tr, float *tr);
 
 #ifdef __cplusplus
 } /* extern "C" */

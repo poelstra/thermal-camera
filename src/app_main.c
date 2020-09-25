@@ -1,5 +1,6 @@
 #include "app_main.h"
 #include "focus.h"
+#include "settings.h"
 #include "thermal_img.h"
 
 #include "hal_init.h"
@@ -11,8 +12,15 @@
 
 #include <lvgl.h>
 
-void settings_show()
+static Settings settings = {
+    .emissivity = 0.95,
+    .auto_ambient = true,
+    .reflected_temperature = 25.0,
+};
+
+static void settings_closed_cb(void)
 {
+    /* no-op */
 }
 
 static void main_event_cb(lv_obj_t *obj, lv_event_t event)
@@ -24,7 +32,7 @@ static void main_event_cb(lv_obj_t *obj, lv_event_t event)
         switch (key)
         {
         case LV_KEY_ENTER:
-            settings_show();
+            settings_show(&settings, settings_closed_cb);
             wait_release = true;
             break;
         case 'A':
@@ -178,7 +186,7 @@ void app_tick()
     // hal_led(led);
 
     float pixels[THERMAL_COLS * THERMAL_ROWS];
-    if (thermal_tick(pixels, 0.95, NULL))
+    if (thermal_tick(pixels, settings.emissivity, settings.auto_ambient, &settings.reflected_temperature))
     {
         thermal_img_update(pixels);
         // hal_printf("{");

@@ -3,6 +3,10 @@
 #include "hal_thermal_frames.inc.c"
 #include "hal_time.h"
 
+#include "hal_print.h"
+
+#include <stddef.h>
+
 bool thermal_init()
 {
     return true;
@@ -10,7 +14,7 @@ bool thermal_init()
 
 const unsigned long FRAME_TIME = 1000 / 8;
 
-bool thermal_tick(float *pixels, float emissivity, float *tr)
+bool thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
 {
     static unsigned long lastTime = 0;
     unsigned long now = hal_millis();
@@ -18,6 +22,14 @@ bool thermal_tick(float *pixels, float emissivity, float *tr)
     if (now - lastTime < FRAME_TIME)
     {
         return false;
+    }
+
+    if (auto_tr && tr != NULL)
+    {
+        // Act like measured ambient temperature is fluctuating
+        // between 25.0 and 25.9, just to demonstrate the live
+        // display of the value in the settings dialog etc.
+        *tr = 25.0 + ((now / 1000) % 10) / 10.0;
     }
 
     lastTime = now;
