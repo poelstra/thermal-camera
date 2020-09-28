@@ -19,6 +19,9 @@ like the code), so I decided to make my own.
 
 ## Features
 
+<img src="main_screen.gif" alt="Main screen" width="320" />
+<img src="settings_screen.gif" alt="Settings screen" width="320" />
+
 - Display of 16x12 pixel thermal image
 - Minimum, maximum and center pixel temperature
 - Indication of center pixel
