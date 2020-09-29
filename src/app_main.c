@@ -211,20 +211,10 @@ void app_tick()
 {
     lv_task_handler();
 
-    // static bool led = true;
-    // led = !led;
-    // hal_led(led);
-
     float pixels[THERMAL_COLS * THERMAL_ROWS];
     if (thermal_tick(pixels, settings.emissivity, settings.auto_ambient, &settings.reflected_temperature))
     {
         flip_pixels(pixels, settings.flip_hor, settings.flip_ver);
         thermal_img_update(pixels);
-        // hal_printf("{");
-        // for (int i = 0; i < 192; i++)
-        // {
-        //     hal_printf("%.2f,", pixels[i]);
-        // }
-        // hal_printf("},\n");
     }
 }

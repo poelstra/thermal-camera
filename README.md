@@ -26,7 +26,9 @@ like the code), so I decided to make my own.
 - Minimum, maximum and center pixel temperature
 - Indication of center pixel
 - Legend showing color scale and min/max range used
-- Settings window (see below)
+- Custom emissivity & reflected temperature
+- Flip image horizontally / vertically
+- Settings window
 
 ## Hardware setup
 
@@ -81,6 +83,8 @@ some advice on how to set/measure them.
     minutes after start-up for this value to settle.
   - **Custom** mode: when the auto-checkbox is disabled, a value can be set
     using the numeric input field.
+- **Flip horizontally**: flip image left-to-right. Useful when moving the sensor to the back.
+- **Flip vertically**: flip image top-to-bottom. Useful when moving the sensor to the back.
 
 ## Development
 
