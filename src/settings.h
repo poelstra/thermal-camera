@@ -29,6 +29,16 @@ typedef struct
      * in-use value when `auto_ambient` is `true`.
      */
     float reflected_temperature;
+
+    /**
+     * Flip image horizontally.
+     */
+    bool flip_hor;
+
+    /**
+     * Flip image vertically.
+     */
+    bool flip_ver;
 } Settings;
 
 typedef void (*SettingsClosedCallback)(void);

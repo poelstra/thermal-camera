@@ -12,6 +12,8 @@ typedef struct
     lv_obj_t *emissivity;
     lv_obj_t *auto_ambient;
     lv_obj_t *reflected;
+    lv_obj_t *flip_hor;
+    lv_obj_t *flip_ver;
     lv_obj_t *close;
 
     lv_task_t *sync_task;
@@ -46,11 +48,13 @@ static void activate_textarea(lv_obj_t *area, bool edit)
 
 static void settings_focus_cb(lv_group_t *group)
 {
-    const lv_obj_t *focused = lv_group_get_focused(group);
+    lv_obj_t *focused = lv_group_get_focused(group);
     if (!focused)
     {
         return;
     }
+
+    lv_win_focus(settings_win->win, focused, LV_ANIM_ON);
 
     bool editing = lv_group_get_editing(group);
     activate_textarea(settings_win->emissivity, focused == settings_win->emissivity && editing);
@@ -92,11 +96,23 @@ void sync_settings_task(lv_task_t *task)
     sync_settings();
 }
 
-static void auto_ambient_event_cb(lv_obj_t *checkbox, lv_event_t event)
+static void checkbox_event_cb(lv_obj_t *checkbox, lv_event_t event)
 {
     if (event == LV_EVENT_VALUE_CHANGED)
     {
-        settings_win->settings->auto_ambient = lv_checkbox_is_checked(checkbox);
+        const bool checked = lv_checkbox_is_checked(checkbox);
+        if (checkbox == settings_win->auto_ambient)
+        {
+            settings_win->settings->auto_ambient = checked;
+        }
+        else if (checkbox == settings_win->flip_hor)
+        {
+            settings_win->settings->flip_hor = checked;
+        }
+        else if (checkbox == settings_win->flip_ver)
+        {
+            settings_win->settings->flip_ver = checked;
+        }
         sync_settings();
     }
 }
@@ -122,7 +138,7 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     settings_win->win = lv_win_create(lv_scr_act(), NULL);
     lv_win_set_title(settings_win->win, "Settings");
     lv_win_set_layout(settings_win->win, LV_LAYOUT_COLUMN_MID);
-    lv_win_set_scrollbar_mode(settings_win->win, LV_SCROLLBAR_MODE_HIDE);
+    lv_win_set_scrollbar_mode(settings_win->win, LV_SCROLLBAR_MODE_OFF);
 
     // Emissivity
     lv_obj_t *row = lv_cont_create(settings_win->win, NULL);
@@ -172,6 +188,32 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     lv_label_set_text(label, "Reflected temperature");
     lv_cont_set_layout(cell, LV_LAYOUT_COLUMN_RIGHT);
 
+    // Flip horizontally
+    row = lv_cont_create(settings_win->win, row);
+    label = lv_label_create(row, label);
+    checkbox = lv_checkbox_create(row, NULL);
+    lv_obj_set_style_local_pad_inner(checkbox, LV_CHECKBOX_PART_BG, LV_STATE_DEFAULT, 0);
+    settings_win->flip_hor = checkbox;
+    lv_group_add_obj(group, checkbox);
+    lv_checkbox_set_text(checkbox, "");
+    lv_checkbox_set_checked(checkbox, settings_win->settings->flip_hor);
+    lv_label_set_long_mode(label, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width_margin(label, lv_obj_get_width_fit(row) - lv_obj_get_width_margin(checkbox) - padding);
+    lv_label_set_text(label, "Flip horizontally");
+
+    // Flip vertically
+    row = lv_cont_create(settings_win->win, row);
+    label = lv_label_create(row, label);
+    checkbox = lv_checkbox_create(row, NULL);
+    lv_obj_set_style_local_pad_inner(checkbox, LV_CHECKBOX_PART_BG, LV_STATE_DEFAULT, 0);
+    settings_win->flip_ver = checkbox;
+    lv_group_add_obj(group, checkbox);
+    lv_checkbox_set_text(checkbox, "");
+    lv_checkbox_set_checked(checkbox, settings_win->settings->flip_ver);
+    lv_label_set_long_mode(label, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width_margin(label, lv_obj_get_width_fit(row) - lv_obj_get_width_margin(checkbox) - padding);
+    lv_label_set_text(label, "Flip vertically");
+
     // Close
     lv_obj_t *close_btn = lv_btn_create(settings_win->win, NULL);
     settings_win->close = close_btn;
@@ -183,7 +225,9 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     // Callbacks
     lv_obj_set_event_cb(settings_win->emissivity, emissivity_event_cb);
     lv_obj_set_event_cb(settings_win->reflected, reflected_event_cb);
-    lv_obj_set_event_cb(settings_win->auto_ambient, auto_ambient_event_cb);
+    lv_obj_set_event_cb(settings_win->auto_ambient, checkbox_event_cb);
+    lv_obj_set_event_cb(settings_win->flip_hor, checkbox_event_cb);
+    lv_obj_set_event_cb(settings_win->flip_ver, checkbox_event_cb);
 
     lv_group_set_focus_cb(group, settings_focus_cb);
     settings_focus_cb(group);

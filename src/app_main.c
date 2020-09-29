@@ -16,6 +16,8 @@ static Settings settings = {
     .emissivity = 0.95,
     .auto_ambient = true,
     .reflected_temperature = 25.0,
+    .flip_hor = false,
+    .flip_ver = false,
 };
 
 static void settings_closed_cb(void)
@@ -177,6 +179,34 @@ void app_init()
     lv_group_add_obj(group, lv_scr_act());
 }
 
+void flip_pixels(float pixels[THERMAL_COLS * THERMAL_ROWS], bool flip_hor, bool flip_ver)
+{
+    if (flip_hor)
+    {
+        for (uint16_t y = 0; y < THERMAL_ROWS; y++)
+        {
+            uint16_t row = y * THERMAL_COLS;
+            for (uint16_t x = 0; x < THERMAL_COLS / 2; x++)
+            {
+                float temp = pixels[row + x];
+                pixels[row + x] = pixels[row + THERMAL_COLS - x - 1];
+                pixels[row + THERMAL_COLS - x - 1] = temp;
+            }
+        }
+    }
+    if (flip_ver)
+    {
+        for (uint16_t y = 0; y < THERMAL_ROWS / 2; y++)
+        {
+            float temp[THERMAL_COLS];
+            memmove(temp, &pixels[y * THERMAL_COLS], THERMAL_COLS * sizeof(float));
+            memmove(&pixels[y * THERMAL_COLS], &pixels[(THERMAL_ROWS - y - 1) * THERMAL_COLS],
+                    THERMAL_COLS * sizeof(float));
+            memmove(&pixels[(THERMAL_ROWS - y - 1) * THERMAL_COLS], temp, THERMAL_COLS * sizeof(float));
+        }
+    }
+}
+
 void app_tick()
 {
     lv_task_handler();
@@ -188,6 +218,7 @@ void app_tick()
     float pixels[THERMAL_COLS * THERMAL_ROWS];
     if (thermal_tick(pixels, settings.emissivity, settings.auto_ambient, &settings.reflected_temperature))
     {
+        flip_pixels(pixels, settings.flip_hor, settings.flip_ver);
         thermal_img_update(pixels);
         // hal_printf("{");
         // for (int i = 0; i < 192; i++)
