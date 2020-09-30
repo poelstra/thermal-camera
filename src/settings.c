@@ -16,6 +16,7 @@ typedef struct
     lv_obj_t *flip_ver;
     lv_obj_t *close;
 
+    lv_group_t *focus_group;
     lv_task_t *sync_task;
 } SettingsWindow;
 
@@ -69,29 +70,46 @@ static void emissivity_event_cb(lv_obj_t *spinbox, lv_event_t event)
     }
 }
 
-static void sync_settings(void)
+static void configure_focus_group()
 {
-    if (settings_win->settings->auto_ambient)
-    {
-        lv_obj_set_state(settings_win->reflected, LV_STATE_DISABLED);
-        lv_group_remove_obj(settings_win->reflected);
+    lv_group_t *group = settings_win->focus_group;
+    lv_obj_t *focused = lv_group_get_focused(group);
 
-        lv_spinbox_set_value(settings_win->reflected, settings_win->settings->reflected_temperature * 10 + 0.5);
-    }
-    else
+    lv_group_remove_all_objs(group);
+    lv_group_add_obj(group, settings_win->emissivity);
+    lv_group_add_obj(group, settings_win->auto_ambient);
+    if (!settings_win->settings->auto_ambient)
     {
-        if (lv_obj_get_group(settings_win->reflected) == NULL)
-        {
-            lv_obj_set_state(settings_win->reflected, LV_STATE_DEFAULT);
-            lv_group_t *group = lv_obj_get_group(settings_win->close);
-            lv_group_remove_obj(settings_win->close);
-            lv_group_add_obj(group, settings_win->reflected);
-            lv_group_add_obj(group, settings_win->close);
-        }
+        lv_group_add_obj(group, settings_win->reflected);
+    }
+    lv_group_add_obj(group, settings_win->flip_hor);
+    lv_group_add_obj(group, settings_win->flip_ver);
+    lv_group_add_obj(group, settings_win->close);
+
+    if (focused)
+    {
+        lv_group_focus_obj(focused);
     }
 }
 
-void sync_settings_task(lv_task_t *task)
+static void sync_settings(void)
+{
+    // Disable reflected temperature spinbox (and remove from focus) or vice-versa
+    bool is_reflected_enabled = lv_obj_get_group(settings_win->reflected) != NULL;
+    bool want_reflected_enabled = !settings_win->settings->auto_ambient;
+    if (want_reflected_enabled != is_reflected_enabled)
+    {
+        lv_obj_set_state(settings_win->reflected, want_reflected_enabled ? LV_STATE_DEFAULT : LV_STATE_DISABLED);
+        configure_focus_group();
+    }
+
+    if (settings_win->settings->auto_ambient)
+    {
+        lv_spinbox_set_value(settings_win->reflected, settings_win->settings->reflected_temperature * 10 + 0.5);
+    }
+}
+
+static void sync_settings_task(lv_task_t *task)
 {
     sync_settings();
 }
@@ -134,6 +152,7 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
 
     settings_win->settings = settings;
     settings_win->closed_cb = closed_cb;
+    settings_win->focus_group = group;
 
     settings_win->win = lv_win_create(lv_scr_act(), NULL);
     lv_win_set_title(settings_win->win, "Settings");
@@ -151,7 +170,6 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     lv_spinbox_set_range(spinbox, 0, 100);
     lv_spinbox_set_digit_format(spinbox, 3, 1);
     lv_spinbox_set_value(spinbox, settings_win->settings->emissivity * 100 + 0.5);
-    lv_group_add_obj(group, spinbox);
     lv_label_set_long_mode(label, LV_LABEL_LONG_BREAK);
     lv_obj_set_width_margin(label, lv_obj_get_width_fit(row) - lv_obj_get_width_margin(spinbox) - padding);
     lv_label_set_text(label, "Emissivity");
@@ -173,7 +191,6 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
 
     lv_obj_t *checkbox = lv_checkbox_create(cell, NULL);
     settings_win->auto_ambient = checkbox;
-    lv_group_add_obj(group, checkbox);
     lv_checkbox_set_text(checkbox, "Auto");
     lv_checkbox_set_checked(checkbox, settings_win->settings->auto_ambient);
     spinbox = lv_spinbox_create(cell, NULL);
@@ -182,7 +199,6 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     lv_spinbox_set_digit_format(spinbox, 4, 3);
     lv_spinbox_set_value(spinbox, settings_win->settings->reflected_temperature * 10 + 0.5);
     lv_spinbox_step_prev(spinbox);
-    lv_group_add_obj(group, spinbox);
     lv_label_set_long_mode(label, LV_LABEL_LONG_BREAK);
     lv_obj_set_width_margin(label, lv_obj_get_width_fit(row) - lv_obj_get_width_margin(cell) - padding - pad_outer);
     lv_label_set_text(label, "Reflected temperature");
@@ -194,7 +210,6 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     checkbox = lv_checkbox_create(row, NULL);
     lv_obj_set_style_local_pad_inner(checkbox, LV_CHECKBOX_PART_BG, LV_STATE_DEFAULT, 0);
     settings_win->flip_hor = checkbox;
-    lv_group_add_obj(group, checkbox);
     lv_checkbox_set_text(checkbox, "");
     lv_checkbox_set_checked(checkbox, settings_win->settings->flip_hor);
     lv_label_set_long_mode(label, LV_LABEL_LONG_BREAK);
@@ -207,7 +222,6 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     checkbox = lv_checkbox_create(row, NULL);
     lv_obj_set_style_local_pad_inner(checkbox, LV_CHECKBOX_PART_BG, LV_STATE_DEFAULT, 0);
     settings_win->flip_ver = checkbox;
-    lv_group_add_obj(group, checkbox);
     lv_checkbox_set_text(checkbox, "");
     lv_checkbox_set_checked(checkbox, settings_win->settings->flip_ver);
     lv_label_set_long_mode(label, LV_LABEL_LONG_BREAK);
@@ -218,7 +232,6 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     lv_obj_t *close_btn = lv_btn_create(settings_win->win, NULL);
     settings_win->close = close_btn;
     lv_obj_set_event_cb(close_btn, settings_close_cb);
-    lv_group_add_obj(group, close_btn);
     lv_obj_t *close_label = lv_label_create(close_btn, NULL);
     lv_label_set_text(close_label, "Close");
 
@@ -229,6 +242,7 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     lv_obj_set_event_cb(settings_win->flip_hor, checkbox_event_cb);
     lv_obj_set_event_cb(settings_win->flip_ver, checkbox_event_cb);
 
+    configure_focus_group();
     lv_group_set_focus_cb(group, settings_focus_cb);
     settings_focus_cb(group);
     sync_settings();
