@@ -89,7 +89,6 @@ some advice on how to set/measure them.
 ## Development
 
 ### Desktop simulator
-The GUI is built using the excellent [LVGL project](https://lvgl.io/).
 
 The application can be built on the desktop, which simplifies development.
 You'll need to have SDL2 installed (including headers) for this to work.
@@ -135,6 +134,17 @@ center button while booting until the blue led (next to the USB port) starts bli
 rapidly (screen will remain off). Then release the button, and use your favorite
 terminal program to connect to the serial port (e.g. Platform IO's builtin Serial
 Monitor). The boot will continue, including showing any messages during early boot.
+
+## Acknowledgements
+
+- The GUI is built using the excellent [LVGL project](https://lvgl.io/).
+- Seeed Studio's Wio Terminal and IR module made this thing possible in the first place,
+  including their example projects.
+- Melexis provides a convenient library to interface to the device and do the low-level
+  thermal calculations.
+- Platform IO made getting this thing up and running quite easy, including having both
+  a 'real' and simulated version.
+- VSCode is a blast.
 
 ## License
 
