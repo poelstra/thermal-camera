@@ -88,12 +88,36 @@ some advice on how to set/measure them.
 
 ## Development
 
+### Desktop simulator
 The GUI is built using the excellent [LVGL project](https://lvgl.io/).
 
-The application can be built on the desktop, which simplifies development Use the `native` target in Platform IO to
-build it, then choose `Ctrl-Shift-P` > `Tasks: Run task` > `Run native` to run it. You'll need to have SDL2 installed (including headers) for this to work.
+The application can be built on the desktop, which simplifies development.
+You'll need to have SDL2 installed (including headers) for this to work.
 
-Note that the desktop version uses a 2x zoom to make pixel-perfect tweaking easier.
+Use the `simulator` target in Platform IO to build it, then choose
+`Ctrl-Shift-P` > `Tasks: Run task` > `Run simulator` to run it.
+
+Alternatively, you can get a full debugging experience, but because Platform IO's
+native platform [doesn't yet support debugging directly](https://github.com/platformio/platformio-core/issues/980),
+you'll need a workaround. Add the following snippet to `.vscode/launch.json` (inside the array):
+
+```json
+{
+  "name": "Debug simulator",
+  "type": "cppdbg",
+  "request": "launch",
+  "program": "${workspaceFolder}/.pio/build/simulator/program",
+  "args": [],
+  "environment": [],
+  "cwd": "${workspaceFolder}",
+  "preLaunchTask": "PlatformIO: Build (simulator)"
+}
+```
+
+Then, select the `Debug simulator` target in VSCode's Debug view and press `F5`.
+Note that this configuration section will be lost after every update to `platformio.ini` etc.
+
+The desktop version uses a 2x zoom to make pixel-perfect tweaking easier.
 It can be controlled using (only) the four cursor keys, the `Enter` key, and the `A`,
 `B` and `C` keys on your keyboard, to stay close to what is possible on the Wio Terminal.
 
@@ -101,8 +125,13 @@ The IR image shown in the desktop version is a 'recording' of a session using
 Wio Terminal. It is currently hardcoded, and doesn't actually respond to e.g. changes
 in reflected temperature or emissivity.
 
-Additionally, the Wio Terminal version has a feature that helps with 'printf-debugging':
-press and hold the joystick's center button while booting until it starts blinking
+### Device debugging
+
+'Real' debugging on the Wio Terminal requires some special provisions, so
+'printf-debugging' is probably easiest.
+
+The application has a feature that helps with that: press and hold the joystick's
+center button while booting until the blue led (next to the USB port) starts blinking
 rapidly (screen will remain off). Then release the button, and use your favorite
 terminal program to connect to the serial port (e.g. Platform IO's builtin Serial
 Monitor). The boot will continue, including showing any messages during early boot.

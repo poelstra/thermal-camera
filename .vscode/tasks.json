@@ -4,12 +4,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Run native",
+      "label": "Run simulator",
       "type": "shell",
-      "command": "./.pio/build/native/program",
-      "dependsOn": [
-        "PlatformIO: Build (native)"
-      ],
+      "command": "./.pio/build/simulator/program",
+      "dependsOn": ["PlatformIO: Build (simulator)"],
       "problemMatcher": [],
       "group": {
         "kind": "build",
