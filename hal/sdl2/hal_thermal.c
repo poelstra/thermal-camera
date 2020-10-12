@@ -7,14 +7,14 @@
 
 #include <stddef.h>
 
-bool thermal_init()
+bool hal_thermal_init()
 {
     return true;
 }
 
 const unsigned long FRAME_TIME = 1000 / 8;
 
-bool thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
+bool hal_thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
 {
     static unsigned long lastTime = 0;
     unsigned long now = hal_millis();

@@ -165,7 +165,7 @@ void app_init()
     hal_printf("Thermal Camera\n");
     hal_printf("Copyright (C) 2020 Martin Poelstra\n\n");
 
-    while (!thermal_init())
+    while (!hal_thermal_init())
     {
         hal_printf("Camera initialization failed, retrying...\n");
         hal_sleep(5000);
@@ -212,7 +212,7 @@ void app_tick()
     lv_task_handler();
 
     float pixels[THERMAL_COLS * THERMAL_ROWS];
-    if (thermal_tick(pixels, settings.emissivity, settings.auto_ambient, &settings.reflected_temperature))
+    if (hal_thermal_tick(pixels, settings.emissivity, settings.auto_ambient, &settings.reflected_temperature))
     {
         flip_pixels(pixels, settings.flip_hor, settings.flip_ver);
         thermal_img_update(pixels);

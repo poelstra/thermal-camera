@@ -15,7 +15,7 @@ extern "C" {
  *
  * @return true when initialization successful, false otherwise
  */
-bool thermal_init();
+bool hal_thermal_init();
 
 /**
  * Check whether new thermal data is available and if so, read it.
@@ -29,7 +29,7 @@ bool thermal_init();
  * @returns true when new sub-page has been read (all pixels will have been updated), false
  *      if no data was available or an error occurred.
  */
-bool thermal_tick(float pixels[THERMAL_COLS * THERMAL_ROWS], float emissivity, bool auto_tr, float *tr);
+bool hal_thermal_tick(float pixels[THERMAL_COLS * THERMAL_ROWS], float emissivity, bool auto_tr, float *tr);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -40,7 +40,7 @@ static bool data_ready()
     return (statusRegister & 0x0008) > 0;
 }
 
-bool thermal_init()
+bool hal_thermal_init()
 {
     Wire.begin();
     Wire.setClock(1000000); // 1 MHz
@@ -75,7 +75,7 @@ bool thermal_init()
     return true;
 }
 
-bool thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
+bool hal_thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
 {
     static bool havePage[] = {false, false};
     static float Ta = 30.0;
