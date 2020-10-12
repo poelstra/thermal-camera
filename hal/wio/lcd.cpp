@@ -1,6 +1,11 @@
 #include "lcd.h"
 
 #include <Arduino.h>
+
+// Explicitly include SPI.h before TFT_eSPI.h to prevent
+// 'error: "SPI_HAS_TRANSACTION" redefined [-Werror]'
+#include <SPI.h>
+
 #include <TFT_eSPI.h>
 #include <lvgl.h>
 

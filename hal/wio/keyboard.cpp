@@ -25,7 +25,7 @@ bool hal_keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
     // is pressed. If it is, we thereby forget the state of any of the
     // other keys, which is considered a good thing for now.
 
-    for (int i = 0; i < NUM_KEYS; i++)
+    for (unsigned int i = 0; i < NUM_KEYS; i++)
     {
         bool pressed = (digitalRead(key_pins[i]) == 0);
         if (pressed)
@@ -42,7 +42,7 @@ bool hal_keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 
 void keyboard_init()
 {
-    for (int i = 0; i < NUM_KEYS; i++)
+    for (unsigned int i = 0; i < NUM_KEYS; i++)
     {
         pinMode(key_pins[i], INPUT_PULLUP);
     }
