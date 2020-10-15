@@ -1,6 +1,8 @@
 #include "settings.h"
 
 #include "focus.h"
+#include "hal_print.h"
+#include "storage.h"
 #include <lvgl.h>
 
 typedef struct
@@ -14,7 +16,8 @@ typedef struct
     lv_obj_t *reflected;
     lv_obj_t *flip_hor;
     lv_obj_t *flip_ver;
-    lv_obj_t *close;
+    lv_obj_t *close_btn;
+    lv_obj_t *save_btn;
 
     lv_group_t *focus_group;
     lv_task_t *sync_task;
@@ -22,20 +25,78 @@ typedef struct
 
 static SettingsWindow *settings_win;
 
-LV_EVENT_CB_DECLARE(settings_close_cb)
+static void settings_close_cb(lv_obj_t *obj, lv_event_t event)
 {
-    if (e == LV_EVENT_CLICKED)
+    if (event != LV_EVENT_CLICKED)
     {
-        focus_pop_group();
-        lv_obj_del(settings_win->win);
-        lv_task_del(settings_win->sync_task);
-        if (settings_win->closed_cb)
-        {
-            settings_win->closed_cb();
-        }
-        lv_mem_free(settings_win);
-        settings_win = NULL;
+        return;
     }
+
+    focus_pop_group();
+    lv_obj_del(settings_win->win);
+    lv_task_del(settings_win->sync_task);
+    SettingsClosedCallback closed_cb = settings_win->closed_cb;
+    lv_mem_free(settings_win);
+    settings_win = NULL;
+
+    if (closed_cb)
+    {
+        closed_cb();
+    }
+}
+
+static void save_error_close_cb(lv_obj_t *msgbox, lv_event_t event)
+{
+    hal_printf("box cb obj=%p event=%u\n", msgbox, event);
+
+    if (event != LV_EVENT_CLICKED)
+    {
+        return;
+    }
+
+    lv_group_t *group = focus_pop_group();
+    hal_printf("A\n");
+    lv_obj_del(msgbox);
+    hal_printf("B\n");
+
+    // Focus close button
+    // lv_group_focus_prev(group);
+    (void)group;
+    hal_printf("C\n");
+}
+
+static void save_defaults_cb(lv_obj_t *obj, lv_event_t event)
+{
+    if (event != LV_EVENT_CLICKED)
+    {
+        return;
+    }
+
+    bool ok = true;
+    if (!storage_write(SETTINGS_MAGIC, SETTINGS_VERSION, settings_win->settings, sizeof(Settings)))
+    {
+        // Recompile with -DSTORAGE_DEBUG=1 for detailed info
+        hal_printf("ERROR: Saving settings failed.\n");
+        ok = false;
+    }
+
+    Settings temp_settings;
+    if (!storage_read(SETTINGS_MAGIC, SETTINGS_VERSION, &temp_settings, sizeof(Settings)) ||
+        memcmp(settings_win->settings, &temp_settings, sizeof(Settings)) != 0)
+    {
+        hal_printf("ERROR: Settings verify failed.\n");
+        ok = false;
+    }
+
+    lv_group_t *group = focus_push_group();
+    lv_obj_t *msgbox = lv_msgbox_create(lv_scr_act(), NULL);
+    const char *msg =
+        ok ? LV_SYMBOL_OK " Settings saved." : LV_SYMBOL_WARNING " There was an error saving your settings.";
+    lv_msgbox_set_text(msgbox, msg);
+    static const char *btn_str[] = {"Close", ""};
+    lv_msgbox_add_btns(msgbox, btn_str);
+    lv_obj_set_event_cb(msgbox, save_error_close_cb);
+    lv_group_add_obj(group, msgbox);
 }
 
 static void activate_textarea(lv_obj_t *area, bool edit)
@@ -84,7 +145,8 @@ static void configure_focus_group()
     }
     lv_group_add_obj(group, settings_win->flip_hor);
     lv_group_add_obj(group, settings_win->flip_ver);
-    lv_group_add_obj(group, settings_win->close);
+    lv_group_add_obj(group, settings_win->close_btn);
+    lv_group_add_obj(group, settings_win->save_btn);
 
     if (focused)
     {
@@ -230,10 +292,18 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
 
     // Close
     lv_obj_t *close_btn = lv_btn_create(settings_win->win, NULL);
-    settings_win->close = close_btn;
-    lv_obj_set_event_cb(close_btn, settings_close_cb);
+    settings_win->close_btn = close_btn;
+    lv_obj_set_event_cb(settings_win->close_btn, settings_close_cb);
     lv_obj_t *close_label = lv_label_create(close_btn, NULL);
     lv_label_set_text(close_label, "Close");
+
+    // Save defaults
+    lv_obj_t *save_btn = lv_btn_create(settings_win->win, NULL);
+    settings_win->save_btn = save_btn;
+    lv_obj_set_event_cb(settings_win->save_btn, save_defaults_cb);
+    close_label = lv_label_create(save_btn, NULL);
+    lv_label_set_text(close_label, "Save as defaults");
+    lv_btn_set_fit2(save_btn, LV_FIT_TIGHT, LV_FIT_NONE);
 
     // Callbacks
     lv_obj_set_event_cb(settings_win->emissivity, emissivity_event_cb);

@@ -1,8 +1,10 @@
 #include "app_main.h"
 #include "focus.h"
 #include "settings.h"
+#include "storage.h"
 #include "thermal_img.h"
 
+#include "hal_flash.h"
 #include "hal_init.h"
 #include "hal_input.h"
 #include "hal_led.h"
@@ -164,6 +166,24 @@ void app_init()
 
     hal_printf("Thermal Camera\n");
     hal_printf("Copyright (C) 2020 Martin Poelstra\n\n");
+
+    if (!hal_flash_init())
+    {
+        hal_printf("WARNING: Storage init failed: can't load/store settings\n");
+    }
+    else
+    {
+        Settings temp_settings;
+        if (!storage_read(SETTINGS_MAGIC, SETTINGS_VERSION, &temp_settings, sizeof(temp_settings)))
+        {
+            hal_printf("No existing settings found, using defaults.\n");
+        }
+        else
+        {
+            hal_printf("Settings loaded from flash.\n");
+            settings = temp_settings;
+        }
+    }
 
     while (!hal_thermal_init())
     {

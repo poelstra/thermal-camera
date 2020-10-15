@@ -7,6 +7,17 @@ extern "C" {
 
 #include <stdbool.h>
 
+/**
+ * Magic number for recognizing valid settings in flash storage.
+ */
+#define SETTINGS_MAGIC (0x5e7716a1)
+
+/**
+ * Current settings version. Increment for every change to the
+ * struct below.
+ */
+#define SETTINGS_VERSION (1)
+
 typedef struct
 {
     /**
