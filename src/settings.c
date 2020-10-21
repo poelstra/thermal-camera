@@ -47,22 +47,15 @@ static void settings_close_cb(lv_obj_t *obj, lv_event_t event)
 
 static void save_error_close_cb(lv_obj_t *msgbox, lv_event_t event)
 {
-    hal_printf("box cb obj=%p event=%u\n", msgbox, event);
-
     if (event != LV_EVENT_CLICKED)
     {
         return;
     }
 
-    lv_group_t *group = focus_pop_group();
-    hal_printf("A\n");
+    focus_pop_group();
     lv_obj_del(msgbox);
-    hal_printf("B\n");
 
-    // Focus close button
-    // lv_group_focus_prev(group);
-    (void)group;
-    hal_printf("C\n");
+    lv_group_focus_obj(settings_win->close_btn);
 }
 
 static void save_defaults_cb(lv_obj_t *obj, lv_event_t event)
