@@ -4,6 +4,7 @@
 #include "hal_thermal.h"
 
 #include <lvgl.h>
+#include <math.h>
 
 #define ZOOM 16
 #define THERMAL_IMG_WIDTH ((lv_coord_t)(THERMAL_COLS * ZOOM))
@@ -15,14 +16,35 @@
 #define LEGEND_WIDTH ((lv_coord_t)(16))
 #define LEGEND_HEIGHT ((lv_coord_t)(128))
 
+/**
+ * Speed of updating auto-range values [0.0 .. 1.0].
+ * 0.0 = no update
+ * 1.0 = immediate update
+ */
+#define AUTO_RANGE_SPEED (0.05)
+
+/**
+ * Minimum distance between minimum and maximum temperature
+ * (in degrees Celsius) to prevent just noise from being
+ * displayed.
+ */
+#define AUTO_RANGE_MIN_DIFF (10)
+
 static lv_design_cb_t thermal_img_ancestor_design;
 static lv_obj_t *thermal_img_obj;
 static uint8_t thermal_pixels[THERMAL_ROWS * THERMAL_COLS];
 
 static lv_color_t colorMap[256];
 
+/**
+ * Cache of min/max temperature ranges for color scale.
+ * Automatically updated from settings if needed.
+ */
 static float thermal_min_temp = 25.0;
 static float thermal_max_temp = 38.0;
+
+static lv_obj_t *legend_min_label;
+static lv_obj_t *legend_max_label;
 static lv_obj_t *measurement_min_label;
 static lv_obj_t *measurement_max_label;
 static lv_obj_t *measurement_center_label;
@@ -145,13 +167,13 @@ void thermal_img_init()
     }
 
     // Color scale min/max labels
-    lv_obj_t *legend_max_label = lv_label_create(lv_scr_act(), NULL);
+    legend_max_label = lv_label_create(lv_scr_act(), NULL);
     lv_obj_set_auto_realign(legend_max_label, true);
     lv_obj_align(legend_max_label, legend, LV_ALIGN_OUT_TOP_MID, 0, 0);
     lv_label_set_align(legend_max_label, LV_LABEL_ALIGN_CENTER);
     lv_label_set_text_fmt(legend_max_label, "%.0f", thermal_max_temp);
 
-    lv_obj_t *legend_min_label = lv_label_create(lv_scr_act(), NULL);
+    legend_min_label = lv_label_create(lv_scr_act(), NULL);
     lv_obj_set_auto_realign(legend_min_label, true);
     lv_obj_align(legend_min_label, legend, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
     lv_label_set_align(legend_min_label, LV_LABEL_ALIGN_CENTER);
@@ -203,12 +225,13 @@ static uint32_t temp_to_rgb(float temp)
     return lv_color_to32(color) & 0xffffff;
 }
 
-void thermal_img_update(const float pixels[THERMAL_ROWS * THERMAL_COLS])
+void thermal_img_update(const float pixels[THERMAL_ROWS * THERMAL_COLS], Settings *settings)
 {
     float center_temp = get_temp(pixels, THERMAL_COLS / 2, THERMAL_ROWS / 2);
     float min_temp = center_temp;
     float max_temp = center_temp;
 
+    // Determine min/max temperature
     for (uint16_t y = 0; y < THERMAL_ROWS; y++)
     {
         for (uint16_t x = 0; x < THERMAL_COLS; x++)
@@ -222,6 +245,52 @@ void thermal_img_update(const float pixels[THERMAL_ROWS * THERMAL_COLS])
             {
                 max_temp = pixel;
             }
+        }
+    }
+
+    // Apply auto-ranging if needed
+    if (settings->auto_range)
+    {
+        float new_min_temp = settings->min_temp;
+        new_min_temp *= (1.0 - AUTO_RANGE_SPEED);
+        new_min_temp += min_temp * AUTO_RANGE_SPEED;
+        new_min_temp = new_min_temp;
+
+        float new_max_temp = settings->max_temp;
+        new_max_temp *= (1.0 - AUTO_RANGE_SPEED);
+        new_max_temp += max_temp * AUTO_RANGE_SPEED;
+        new_max_temp = new_max_temp;
+
+        // Ensure min and max are at least a certain amount of degrees separated,
+        // to prevent showing just an enormous amount of noise
+        if (new_max_temp - new_min_temp < 10)
+        {
+            float avg = (new_max_temp + new_min_temp) / 2.0;
+            new_min_temp = avg - AUTO_RANGE_MIN_DIFF / 2;
+            new_max_temp = avg + AUTO_RANGE_MIN_DIFF / 2;
+        }
+        settings->min_temp = new_min_temp;
+        settings->max_temp = new_max_temp;
+    }
+
+    // Apply latest range settings
+    if (settings->min_temp != thermal_min_temp)
+    {
+        thermal_min_temp = settings->min_temp;
+        lv_label_set_text_fmt(legend_min_label, "%.0f", thermal_min_temp);
+    }
+    if (settings->max_temp != thermal_max_temp)
+    {
+        thermal_max_temp = settings->max_temp;
+        lv_label_set_text_fmt(legend_max_label, "%.0f", thermal_max_temp);
+    }
+
+    // Convert temperature to color and update image
+    for (uint16_t y = 0; y < THERMAL_ROWS; y++)
+    {
+        for (uint16_t x = 0; x < THERMAL_COLS; x++)
+        {
+            float pixel = get_temp(pixels, x, y);
             thermal_pixels[y * THERMAL_COLS + x] = temp_to_intensity(pixel);
         }
     }

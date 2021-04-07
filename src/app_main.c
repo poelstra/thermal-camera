@@ -18,6 +18,9 @@ static Settings settings = {
     .emissivity = 0.95,
     .auto_ambient = true,
     .reflected_temperature = 25.0,
+    .auto_range = true,
+    .min_temp = 25.0,
+    .max_temp = 38.0,
     .flip_hor = false,
     .flip_ver = false,
 };
@@ -235,6 +238,7 @@ void app_tick()
     if (hal_thermal_tick(pixels, settings.emissivity, settings.auto_ambient, &settings.reflected_temperature))
     {
         flip_pixels(pixels, settings.flip_hor, settings.flip_ver);
-        thermal_img_update(pixels);
+        hal_printf("temp=%.1f\n", pixels[THERMAL_COLS / 2 + THERMAL_COLS * (THERMAL_ROWS / 2)]);
+        thermal_img_update(pixels, &settings);
     }
 }

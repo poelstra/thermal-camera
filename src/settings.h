@@ -16,7 +16,7 @@ extern "C" {
  * Current settings version. Increment for every change to the
  * struct below.
  */
-#define SETTINGS_VERSION (1)
+#define SETTINGS_VERSION (2)
 
 typedef struct
 {
@@ -40,6 +40,22 @@ typedef struct
      * in-use value when `auto_ambient` is `true`.
      */
     float reflected_temperature;
+
+    /**
+     * Whether to automatically update min/max temperature
+     * of color scale based on live image.
+     */
+    bool auto_range;
+
+    /**
+     * Minimum temperature on color scale.
+     */
+    float min_temp;
+
+    /**
+     * Maximum temperature on color scale.
+     */
+    float max_temp;
 
     /**
      * Flip image horizontally.
