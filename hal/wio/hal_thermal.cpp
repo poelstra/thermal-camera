@@ -78,7 +78,6 @@ bool hal_thermal_init()
 bool hal_thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
 {
     static bool havePage[] = {false, false};
-    static float Ta = 30.0;
 
     if (!data_ready())
     {
@@ -99,12 +98,22 @@ bool hal_thermal_tick(float *pixels, float emissivity, bool auto_tr, float *tr)
         return false;
     }
 
+    // First page after power-up is apparently always bogus, so skip it
+    static bool firstPage = true;
+    if (firstPage)
+    {
+        firstPage = false;
+        havePage[0] = false;
+        havePage[1] = false;
+        return false;
+    }
+
     // Determine reflected temperature to use: use built-in ambient
     // temperature sensor or user-defined temperature.
     float trToUse;
     if (auto_tr || tr == NULL)
     {
-        Ta = MLX90641_GetTa(MLX90641Frame, &MLX90641);
+        float Ta = MLX90641_GetTa(MLX90641Frame, &MLX90641);
         trToUse = Ta - TA_SHIFT;
         if (tr != NULL)
         {
