@@ -297,7 +297,7 @@ void thermal_img_update(const float pixels[THERMAL_ROWS * THERMAL_COLS], Setting
     lv_obj_invalidate(thermal_img_obj);
 
     lv_label_set_text_fmt(measurement_min_label, "#%06x " LV_SYMBOL_DOWN "# %.1f ", temp_to_rgb(min_temp), min_temp);
-    lv_label_set_text_fmt(measurement_center_label, "#%06x " LV_SYMBOL_PLUS "# %.1f ", temp_to_rgb(center_temp),
+    lv_label_set_text_fmt(measurement_center_label, "#%06x " CUSTOM_SYMBOL_EXPAND "# %.1f ", temp_to_rgb(center_temp),
                           center_temp);
     lv_label_set_text_fmt(measurement_max_label, "#%06x " LV_SYMBOL_UP "# %#.1f ", temp_to_rgb(max_temp), max_temp);
 }
