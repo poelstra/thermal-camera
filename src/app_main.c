@@ -1,5 +1,6 @@
 #include "app_main.h"
 #include "focus.h"
+#include "header.h"
 #include "settings.h"
 #include "storage.h"
 #include "thermal_img.h"
@@ -195,6 +196,7 @@ void app_init()
     }
     hal_printf("Camera initialized.\n");
 
+    header_init();
     thermal_img_init();
 
     lv_obj_set_event_cb(lv_scr_act(), main_event_cb);
@@ -240,5 +242,6 @@ void app_tick()
         flip_pixels(pixels, settings.flip_hor, settings.flip_ver);
         hal_printf("temp=%.1f\n", pixels[THERMAL_COLS / 2 + THERMAL_COLS * (THERMAL_ROWS / 2)]);
         thermal_img_update(pixels, &settings);
+        header_update(&settings);
     }
 }
