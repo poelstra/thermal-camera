@@ -44,15 +44,12 @@ static void main_event_cb(lv_obj_t *obj, lv_event_t event)
             wait_release = true;
             break;
         case 'A':
-            hal_printf("A\n");
             wait_release = true;
             break;
         case 'B':
-            hal_printf("B\n");
             wait_release = true;
             break;
         case 'C':
-            hal_printf("C\n");
             wait_release = true;
             break;
         }
@@ -146,6 +143,17 @@ static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
         if (!editing)
         {
             data->key = LV_KEY_NEXT;
+        }
+        break;
+
+    case 'A':
+    case 'B':
+    case 'C':
+        if (editing)
+        {
+            // Prevent entering 'function keys' as literal values
+            // into e.g. an edit box.
+            data->state = LV_INDEV_STATE_REL;
         }
         break;
     }
