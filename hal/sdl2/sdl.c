@@ -15,6 +15,18 @@ bool hal_keyboard_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 
     switch (data->key)
     {
+    case LV_KEY_LEFT:
+    case LV_KEY_RIGHT:
+    case LV_KEY_UP:
+    case LV_KEY_DOWN:
+    case LV_KEY_ENTER:
+    case 'A':
+    case 'B':
+    case 'C':
+        // Only allow keys that also exist on the
+        // WIO terminal to facilitate realistic
+        // navigation during development.
+        break;
     case 'a':
         data->key = 'A';
         break;
@@ -24,6 +36,8 @@ bool hal_keyboard_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
     case 'c':
         data->key = 'C';
         break;
+    default:
+        data->state = LV_INDEV_STATE_REL;
     }
 
     return result;
