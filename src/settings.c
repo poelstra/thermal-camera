@@ -28,13 +28,8 @@ typedef struct
 
 static SettingsWindow *settings_win;
 
-static void settings_close_cb(lv_obj_t *obj, lv_event_t event)
+static void settings_close()
 {
-    if (event != LV_EVENT_CLICKED)
-    {
-        return;
-    }
-
     focus_pop_group();
     lv_obj_del(settings_win->win);
     lv_task_del(settings_win->sync_task);
@@ -45,6 +40,14 @@ static void settings_close_cb(lv_obj_t *obj, lv_event_t event)
     if (closed_cb)
     {
         closed_cb();
+    }
+}
+
+static void settings_close_cb(lv_obj_t *obj, lv_event_t event)
+{
+    if (event == LV_EVENT_CLICKED || event == LV_EVENT_CANCEL)
+    {
+        settings_close();
     }
 }
 
@@ -63,7 +66,11 @@ static void save_error_close_cb(lv_obj_t *msgbox, lv_event_t event)
 
 static void save_defaults_cb(lv_obj_t *obj, lv_event_t event)
 {
-    if (event != LV_EVENT_CLICKED)
+    if (event == LV_EVENT_CANCEL)
+    {
+        settings_close();
+    }
+    else if (event != LV_EVENT_CLICKED)
     {
         return;
     }
@@ -220,6 +227,10 @@ static void checkbox_event_cb(lv_obj_t *checkbox, lv_event_t event)
         }
         sync_settings();
     }
+    else if (event == LV_EVENT_CANCEL)
+    {
+        settings_close();
+    }
 }
 
 static void spinbox_event_cb(lv_obj_t *spinbox, lv_event_t event)
@@ -263,6 +274,10 @@ static void spinbox_event_cb(lv_obj_t *spinbox, lv_event_t event)
                 }
             }
         }
+    }
+    else if (event == LV_EVENT_CANCEL)
+    {
+        settings_close();
     }
 }
 

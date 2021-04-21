@@ -20,23 +20,27 @@ bool hal_keyboard_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
     case LV_KEY_UP:
     case LV_KEY_DOWN:
     case LV_KEY_ENTER:
-    case 'A':
     case 'B':
     case 'C':
-        // Only allow keys that also exist on the
-        // WIO terminal to facilitate realistic
-        // navigation during development.
         break;
+
+    case LV_KEY_ESC:
+    case 'A':
     case 'a':
-        data->key = 'A';
+        data->key = LV_KEY_ESC;
         break;
+
     case 'b':
         data->key = 'B';
         break;
     case 'c':
         data->key = 'C';
         break;
+
     default:
+        // Only allow keys that also exist on the
+        // WIO terminal to facilitate realistic
+        // navigation during development.
         data->state = LV_INDEV_STATE_REL;
     }
 

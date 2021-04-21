@@ -12,7 +12,7 @@ static const uint8_t key_pins[] = {
 
 // WIO numbered their three top keys in reverse order...
 static const uint32_t key_codes[NUM_KEYS] = {
-    LV_KEY_UP, LV_KEY_DOWN, LV_KEY_LEFT, LV_KEY_RIGHT, LV_KEY_ENTER, 'C', 'B', 'A',
+    LV_KEY_UP, LV_KEY_DOWN, LV_KEY_LEFT, LV_KEY_RIGHT, LV_KEY_ENTER, 'C', 'B', LV_KEY_ESC,
 };
 
 bool hal_keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)

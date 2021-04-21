@@ -43,7 +43,7 @@ static void main_event_cb(lv_obj_t *obj, lv_event_t event)
             settings_show(&settings, settings_closed_cb);
             wait_release = true;
             break;
-        case 'A':
+        case LV_KEY_ESC:
             wait_release = true;
             break;
         case 'B':
@@ -90,11 +90,9 @@ static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 {
     bool result = hal_keyboard_read(drv, data);
 
-    static bool enter_pressed = false;
-    if (data->key != LV_KEY_ENTER || data->state != LV_INDEV_STATE_PR)
-    {
-        enter_pressed = false;
-    }
+    static bool last_down = false;
+    bool new_key_pressed = data->state == LV_INDEV_STATE_PR && !last_down;
+    last_down = data->state == LV_INDEV_STATE_PR;
 
     lv_group_t *group = focus_get_current_group();
     bool editing = lv_group_get_editing(group);
@@ -102,9 +100,8 @@ static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
     switch (data->key)
     {
     case LV_KEY_ENTER:
-        if (!enter_pressed && data->state == LV_INDEV_STATE_PR)
+        if (new_key_pressed)
         {
-            enter_pressed = true;
             lv_obj_t *focused = lv_group_get_focused(group);
             lv_obj_type_t type;
             lv_obj_get_type(focused, &type);
@@ -121,6 +118,27 @@ static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
             }
         }
         break;
+
+    case LV_KEY_ESC:
+        if (new_key_pressed && editing)
+        {
+            lv_obj_t *focused = lv_group_get_focused(group);
+            lv_obj_type_t type;
+            lv_obj_get_type(focused, &type);
+            if (strcmp(type.type[0], "lv_spinbox") == 0)
+            {
+                lv_indev_wait_release(lv_indev_get_act());
+
+                lv_group_set_editing(group, false);
+                lv_group_focus_cb_t focus_cb = lv_group_get_focus_cb(group);
+                if (focus_cb)
+                {
+                    focus_cb(group);
+                }
+            }
+        }
+        break;
+
     case LV_KEY_UP:
         if (!editing)
         {
@@ -146,7 +164,6 @@ static bool keyboard_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
         }
         break;
 
-    case 'A':
     case 'B':
     case 'C':
         if (editing)
