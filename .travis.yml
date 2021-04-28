@@ -9,6 +9,11 @@ cache:
         - "~/.platformio"
         - $HOME/.cache/pip
 
+addons:
+    apt:
+        packages:
+            - libsdl2-dev
+
 install:
     - pip install -U platformio
     - pio update
