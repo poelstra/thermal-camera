@@ -11,7 +11,8 @@ typedef struct
     SettingsClosedCallback closed_cb;
 
     lv_obj_t *win;
-    lv_obj_t *emissivity;
+    lv_obj_t *material_index;
+    lv_obj_t *custom_emissivity;
     lv_obj_t *auto_ambient;
     lv_obj_t *reflected;
     lv_obj_t *auto_range;
@@ -135,7 +136,7 @@ static void settings_focus_cb(lv_group_t *group)
     lv_win_focus(settings_win->win, box, LV_ANIM_ON);
 
     bool editing = lv_group_get_editing(group);
-    activate_textarea(settings_win->emissivity, focused, editing);
+    activate_textarea(settings_win->custom_emissivity, focused, editing);
     activate_textarea(settings_win->reflected, focused, editing);
     activate_textarea(settings_win->max_temp, focused, editing);
     activate_textarea(settings_win->min_temp, focused, editing);
@@ -147,7 +148,7 @@ static void configure_focus_group()
     lv_obj_t *focused = lv_group_get_focused(group);
 
     lv_group_remove_all_objs(group);
-    lv_group_add_obj(group, settings_win->emissivity);
+    lv_group_add_obj(group, settings_win->custom_emissivity);
     lv_group_add_obj(group, settings_win->auto_ambient);
     if (!settings_win->settings->auto_ambient)
     {
@@ -238,9 +239,9 @@ static void spinbox_event_cb(lv_obj_t *spinbox, lv_event_t event)
     if (event == LV_EVENT_VALUE_CHANGED)
     {
         int32_t value = lv_spinbox_get_value(spinbox);
-        if (spinbox == settings_win->emissivity)
+        if (spinbox == settings_win->custom_emissivity)
         {
-            settings_win->settings->emissivity = value / 100.0;
+            settings_win->settings->custom_emissivity = value / 100.0;
         }
         else if (spinbox == settings_win->reflected)
         {
@@ -305,13 +306,13 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     lv_cont_set_layout(row, LV_LAYOUT_ROW_MID);
     lv_obj_t *label = lv_label_create(row, NULL);
     lv_obj_t *spinbox = lv_spinbox_create(row, NULL);
-    settings_win->emissivity = spinbox;
+    settings_win->custom_emissivity = spinbox;
     lv_spinbox_set_range(spinbox, 0, 100);
     lv_spinbox_set_digit_format(spinbox, 3, 1);
-    lv_spinbox_set_value(spinbox, settings_win->settings->emissivity * 100 + 0.5);
+    lv_spinbox_set_value(spinbox, settings_win->settings->custom_emissivity * 100 + 0.5);
     lv_label_set_long_mode(label, LV_LABEL_LONG_BREAK);
     lv_obj_set_width_margin(label, lv_obj_get_width_fit(row) - lv_obj_get_width_margin(spinbox) - padding);
-    lv_label_set_text(label, "Emissivity");
+    lv_label_set_text(label, "Custom emissivity");
 
     // Reflected temperature + auto_ambient check box
     row = lv_cont_create(settings_win->win, row);
@@ -422,7 +423,7 @@ void settings_show(Settings *settings, SettingsClosedCallback closed_cb)
     lv_btn_set_fit2(save_btn, LV_FIT_TIGHT, LV_FIT_NONE);
 
     // Callbacks
-    lv_obj_set_event_cb(settings_win->emissivity, spinbox_event_cb);
+    lv_obj_set_event_cb(settings_win->custom_emissivity, spinbox_event_cb);
     lv_obj_set_event_cb(settings_win->reflected, spinbox_event_cb);
     lv_obj_set_event_cb(settings_win->auto_ambient, checkbox_event_cb);
     lv_obj_set_event_cb(settings_win->max_temp, spinbox_event_cb);

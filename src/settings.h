@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * Magic number for recognizing valid settings in flash storage.
@@ -16,16 +17,24 @@ extern "C" {
  * Current settings version. Increment for every change to the
  * struct below.
  */
-#define SETTINGS_VERSION (2)
+#define SETTINGS_VERSION (3)
 
 typedef struct
 {
     /**
-     * Emissivity of measured object.
+     * Index in material array.
+     * When 0, a custom emissivity is used (see below),
+     * otherwise the value from a pre-defined list of
+     * materials is used.
+     */
+    uint8_t material_index;
+
+    /**
+     * Custom emissivity, used when material_index is 0.
      * Value between [0..1] (inclusive).
      * Use e.g. 0.95 for typical matte objects.
      */
-    float emissivity;
+    float custom_emissivity;
 
     /**
      * Use built-in ambient temperature sensor.

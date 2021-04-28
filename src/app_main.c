@@ -1,6 +1,7 @@
 #include "app_main.h"
 #include "focus.h"
 #include "header.h"
+#include "materials.h"
 #include "settings.h"
 #include "storage.h"
 #include "thermal_img.h"
@@ -16,7 +17,8 @@
 #include <lvgl.h>
 
 static Settings settings = {
-    .emissivity = 0.95,
+    .material_index = MATERIALS_INDEX_CUSTOM,
+    .custom_emissivity = 0.95,
     .auto_ambient = true,
     .reflected_temperature = 25.0,
     .auto_range = true,
@@ -44,6 +46,7 @@ static void main_event_cb(lv_obj_t *obj, lv_event_t event)
             wait_release = true;
             break;
         case LV_KEY_ESC:
+            header_edit_emissivity(&settings);
             wait_release = true;
             break;
         case 'B':
@@ -257,12 +260,29 @@ void flip_pixels(float pixels[THERMAL_COLS * THERMAL_ROWS], bool flip_hor, bool 
     }
 }
 
+static float get_current_emissivity()
+{
+    // Fix invalid material index, if found (shouldn't ever happen)
+    if (settings.material_index >= materials_count)
+    {
+        settings.material_index = MATERIALS_INDEX_CUSTOM;
+    }
+
+    if (settings.material_index == MATERIALS_INDEX_CUSTOM)
+    {
+        return settings.custom_emissivity;
+    }
+
+    return materials[settings.material_index].emissivity / 1000.0;
+}
+
 void app_tick()
 {
     lv_task_handler();
 
     float pixels[THERMAL_COLS * THERMAL_ROWS];
-    if (hal_thermal_tick(pixels, settings.emissivity, settings.auto_ambient, &settings.reflected_temperature))
+    float emissivity = get_current_emissivity();
+    if (hal_thermal_tick(pixels, emissivity, settings.auto_ambient, &settings.reflected_temperature))
     {
         flip_pixels(pixels, settings.flip_hor, settings.flip_ver);
         hal_printf("temp=%.1f\n", pixels[THERMAL_COLS / 2 + THERMAL_COLS * (THERMAL_ROWS / 2)]);
